@@ -277,6 +277,45 @@ All testing is performed using domains, accounts, and mailboxes under my control
 Credentials, passwords, authentication tokens, private cryptographic material, recovery information, and other sensitive information are excluded from this repository.
 
 ---
+## Evidence
+
+### Initial DNS Baseline
+
+The domain started with no custom DNS records configured.
+
+![Initial DNS Baseline](evidence/01-dns-baseline-no-records.png)
+
+---
+
+### SPF Validation
+
+A real message sent through Microsoft 365 was validated by Gmail.
+
+![SPF PASS Result](evidence/02-spf-pass-result.png)
+
+---
+
+### DKIM Validation
+
+After publishing the Microsoft 365 DKIM selectors and enabling signing, Gmail validated the DKIM signature for `gabrielthelad.com`.
+
+![DKIM PASS Result](evidence/03-dkim-pass-result.png)
+
+---
+
+### DMARC Validation
+
+After publishing the initial `p=none` DMARC policy, Gmail confirmed successful SPF, DKIM, and DMARC authentication.
+
+![DMARC PASS Result](evidence/04-dmarc-pass-result.png)
+
+---
+
+### Final DNS Configuration
+
+The final DNS configuration includes Microsoft 365 mail routing, SPF, DKIM selectors, DMARC, and Autodiscover.
+
+![Final DNS Configuration](evidence/05-final-dns-configuration.png)
 
 ## Project Status
 
