@@ -178,7 +178,61 @@ This confirmed that the message successfully met DMARC authentication and alignm
 **Status: PASS ✅**
 
 ---
+## 6. Controlled SPF Failure Test
 
+To test how DMARC behaves when SPF fails, the SPF policy was temporarily changed from:
+
+```text
+v=spf1 include:spf.protection.outlook.com -all
+```
+
+to:
+
+```text
+v=spf1 -all
+```
+
+This intentionally caused Microsoft 365 mail to fail SPF authentication while DKIM signing remained enabled.
+
+### Expected Result
+
+```text
+SPF: FAIL
+DKIM: PASS
+DMARC: PASS
+```
+
+### Actual Result
+
+Gmail reported:
+
+```text
+SPF: FAIL
+DKIM: PASS
+DMARC: PASS
+```
+
+This confirmed that DMARC does not require both SPF and DKIM to pass.
+
+In this test, SPF failed, but DMARC still passed because DKIM passed and aligned with the visible `From` domain.
+
+### Evidence
+
+![Controlled SPF Failure Test](evidence/06-spf-failure-dkim-pass-dmarc-pass.png)
+
+### Recovery
+
+After the test, the original Microsoft 365 SPF policy was restored:
+
+```text
+v=spf1 include:spf.protection.outlook.com -all
+```
+
+Public DNS was checked again to confirm that the correct SPF record had been restored.
+
+**Status: Controlled SPF failure test completed successfully ✅**
+
+---
 ## Authentication Results
 
 The final successful test produced the following results:
