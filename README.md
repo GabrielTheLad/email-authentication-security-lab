@@ -284,6 +284,82 @@ This confirmed that DKIM signing was successfully restored and the domain return
 **Status: Controlled DKIM-disabled test and recovery completed successfully ✅**
 
 ---
+## 8. Controlled DMARC Alignment Failure Test
+
+To demonstrate that successful SPF and DKIM authentication do not automatically result in DMARC success, a controlled message was sent through SendGrid using a verified sender address for `gabrielthelad.com`.
+
+The domain itself was not authenticated with SendGrid.
+
+This allowed the message to be sent with:
+
+```text
+Visible From domain: gabrielthelad.com
+SPF authenticated domain: sendgrid.net
+DKIM signing domain: sendgrid.net
+```
+
+### Expected Result
+
+```text
+SPF: PASS
+DKIM: PASS
+DMARC: FAIL
+```
+
+### Actual Result
+
+Gmail reported:
+
+```text
+SPF: PASS
+DKIM: PASS with domain sendgrid.net
+DMARC: FAIL
+```
+
+### Authentication Results
+
+A sanitized version of the Gmail authentication header showed:
+
+```text
+Authentication-Results:
+dkim=pass header.i=@sendgrid.net header.s=smtpapi;
+spf=pass smtp.mailfrom="bounces+REDACTED@sendgrid.net";
+dmarc=fail (p=NONE sp=NONE dis=NONE) header.from=gabrielthelad.com
+```
+
+### Why DMARC Failed
+
+Both SPF and DKIM authenticated successfully, but neither authenticated domain aligned with the visible `From` domain.
+
+| Mechanism | Authenticated Domain | Result | Aligned with `gabrielthelad.com` |
+|---|---|---|---|
+| SPF | `sendgrid.net` | PASS | No |
+| DKIM | `sendgrid.net` | PASS | No |
+| DMARC | — | FAIL | No aligned authentication mechanism |
+
+This demonstrates an important DMARC principle:
+
+**Authentication success alone is not enough. At least one passing authentication mechanism must also align with the visible `From` domain.**
+
+### Evidence
+
+![DMARC Alignment Failure](evidence/09-dmarc-alignment-failure.png)
+
+### Observation
+
+The DMARC policy for `gabrielthelad.com` was still configured as:
+
+```text
+v=DMARC1; p=none
+```
+
+Because the domain was operating in monitoring mode, the failed DMARC evaluation did not request quarantine or rejection of the message.
+
+No changes were required to the Microsoft 365 or Spaceship DNS configuration for this test.
+
+**Status: Controlled DMARC alignment failure test completed successfully ✅**
+
+---
 ## Authentication Results
 
 The final successful test produced the following results:
