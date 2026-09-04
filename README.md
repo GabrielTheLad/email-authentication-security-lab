@@ -233,6 +233,57 @@ Public DNS was checked again to confirm that the correct SPF record had been res
 **Status: Controlled SPF failure test completed successfully ✅**
 
 ---
+## 7. Controlled DKIM-Disabled Test
+
+To observe how DMARC behaves when custom-domain DKIM signing is unavailable, DKIM signing for `gabrielthelad.com` was temporarily disabled in Microsoft Defender.
+
+The SPF configuration was left unchanged.
+
+### Expected Result
+
+```text
+SPF: PASS
+DKIM: Not available for the custom domain
+DMARC: PASS
+```
+
+### Actual Result
+
+Gmail reported:
+
+```text
+SPF: PASS
+DKIM: Not shown
+DMARC: PASS
+```
+
+This demonstrated that DMARC can still pass without DKIM when SPF passes and aligns with the visible `From` domain.
+
+### Evidence
+
+![Controlled DKIM Disabled Test](evidence/07-dkim-disabled-spf-pass-dmarc-pass.png)
+
+### Recovery
+
+After the test, DKIM signing for `gabrielthelad.com` was re-enabled in Microsoft Defender.
+
+A new validation message was then sent to confirm that normal authentication had been restored.
+
+The result was:
+
+```text
+SPF: PASS
+DKIM: PASS
+DMARC: PASS
+```
+
+![DKIM Restored Validation](evidence/08-dkim-restored-pass-result.png)
+
+This confirmed that DKIM signing was successfully restored and the domain returned to its normal authentication state.
+
+**Status: Controlled DKIM-disabled test and recovery completed successfully ✅**
+
+---
 ## Authentication Results
 
 The final successful test produced the following results:
