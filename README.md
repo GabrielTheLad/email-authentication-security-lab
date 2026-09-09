@@ -360,6 +360,73 @@ No changes were required to the Microsoft 365 or Spaceship DNS configuration for
 **Status: Controlled DMARC alignment failure test completed successfully ✅**
 
 ---
+## 9. DMARC Aggregate Reporting
+
+After validating SPF, DKIM, DMARC, and alignment behavior, DMARC aggregate reporting was enabled to provide visibility into systems sending mail using the domain.
+
+A dedicated reporting alias was created:
+
+```text
+dmarc-reports@gabrielthelad.com
+```
+
+The existing DMARC record was then updated from:
+
+```text
+v=DMARC1; p=none
+```
+
+to:
+
+```text
+v=DMARC1; p=none; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+### Purpose of `rua`
+
+The `rua` tag specifies where participating receiving mail systems can send DMARC aggregate reports.
+
+These reports can provide information such as:
+
+- Source IP addresses sending mail for the domain
+- Message counts
+- SPF authentication results
+- DKIM authentication results
+- SPF and DKIM alignment
+- DMARC disposition
+- Authentication failures
+- Sending infrastructure using the domain
+
+The domain remains under:
+
+```text
+p=none
+```
+
+This allows authentication activity to be monitored before moving toward an enforcement policy.
+
+### DNS Validation
+
+The updated DMARC policy was verified using Google Public DNS:
+
+```text
+nslookup -type=txt _dmarc.gabrielthelad.com 8.8.8.8
+```
+
+The public DNS response confirmed:
+
+```text
+v=DMARC1; p=none; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+### Evidence
+
+![DMARC Aggregate Reporting Enabled](evidence/10-dmarc-aggregate-reporting-enabled.png)
+
+**Status: DMARC aggregate reporting enabled successfully ✅**
+
+---
+
 ## Authentication Results
 
 The final successful test produced the following results:
