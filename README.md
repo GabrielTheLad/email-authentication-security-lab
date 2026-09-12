@@ -426,7 +426,119 @@ v=DMARC1; p=none; rua=mailto:dmarc-reports@gabrielthelad.com
 **Status: DMARC aggregate reporting enabled successfully ✅**
 
 ---
+## 10. DMARC Aggregate Report Analysis
 
+After enabling DMARC aggregate reporting, the first XML report was received from Google.
+
+The report covered email activity for:
+
+```text
+September 10, 2026
+```
+
+Google observed two messages claiming to originate from `gabrielthelad.com`.
+
+### Published DMARC Policy
+
+The report confirmed the following policy:
+
+```text
+Domain: gabrielthelad.com
+Policy: none
+SPF alignment mode: relaxed
+DKIM alignment mode: relaxed
+Policy percentage: 100%
+```
+
+The corresponding DMARC settings were:
+
+```text
+p=none
+aspf=r
+adkim=r
+pct=100
+```
+
+This confirmed that the domain was still operating in monitoring mode while applying relaxed SPF and DKIM alignment.
+
+### Message Activity
+
+The aggregate report recorded:
+
+```text
+Source IP: 2a01:111:f403:c200::1
+Message count: 2
+Disposition: none
+SPF: PASS
+DKIM: PASS
+```
+
+Because the DMARC policy was `p=none`, no quarantine or rejection action was requested.
+
+### Authentication Results
+
+The report showed:
+
+```text
+Header From: gabrielthelad.com
+```
+
+DKIM:
+
+```text
+Domain: gabrielthelad.com
+Result: PASS
+Selector: selector1
+```
+
+SPF:
+
+```text
+Domain: gabrielthelad.com
+Result: PASS
+```
+
+Both authentication mechanisms used `gabrielthelad.com`, confirming successful authentication and alignment.
+
+### Summary
+
+| Item | Result |
+|---|---|
+| Reporting Provider | Google |
+| Messages Observed | 2 |
+| Header From | `gabrielthelad.com` |
+| SPF | PASS |
+| SPF Alignment | PASS |
+| DKIM | PASS |
+| DKIM Selector | `selector1` |
+| DKIM Alignment | PASS |
+| DMARC | PASS |
+| DMARC Policy | `p=none` |
+| Disposition | none |
+
+This demonstrated the full DMARC reporting lifecycle:
+
+```text
+Publish rua
+   ↓
+Receiver evaluates authentication
+   ↓
+Receiver generates aggregate report
+   ↓
+Report delivered to reporting mailbox
+   ↓
+XML report analyzed
+```
+
+The report confirmed that Microsoft 365 was sending authenticated and aligned mail for the domain.
+
+### Evidence
+
+[Sanitized Google DMARC Aggregate Report](evidence/11-google-dmarc-aggregate-report-sanitized.xml)
+
+**Status: First DMARC aggregate report received and analyzed successfully ✅**
+
+---
 ## Authentication Results
 
 The final successful test produced the following results:
