@@ -558,7 +558,113 @@ gabrielthelad.com
 Microsoft 365 was authorized through SPF, outbound messages were DKIM-signed using the custom domain, and DMARC successfully validated the authenticated message.
 
 ---
+## 11. DMARC Quarantine Enforcement Test
 
+After monitoring DMARC activity and reviewing the first aggregate report, the DMARC policy was changed from:
+
+```text
+v=DMARC1; p=none; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+to:
+
+```text
+v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+The purpose of this phase was to observe how a receiving provider handled both legitimate aligned mail and mail that failed DMARC alignment.
+
+### Test A — Legitimate Microsoft 365 Mail
+
+A normal message was sent from the Microsoft 365 mailbox using:
+
+```text
+From: gabriel@gabrielthelad.com
+```
+
+Gmail reported:
+
+```text
+SPF: PASS
+DKIM: PASS
+DMARC: PASS
+```
+
+The message was delivered normally.
+
+This confirmed that moving the domain to `p=quarantine` did not affect legitimate mail where authentication and alignment were correct.
+
+### Evidence
+
+![DMARC Quarantine Legitimate Test](evidence/12-dmarc-quarantine-legitimate-pass.png)
+
+---
+
+### Test B — DMARC Alignment Failure
+
+A second message was sent through SendGrid using the verified visible sender:
+
+```text
+gabriel@gabrielthelad.com
+```
+
+However, SendGrid authenticated the message using its own domain.
+
+Gmail reported:
+
+```text
+SPF: PASS
+DKIM: PASS with domain sendgrid.net
+DMARC: FAIL
+```
+
+The authentication mechanisms passed, but neither authenticated domain aligned with the visible `From` domain:
+
+```text
+Visible From: gabrielthelad.com
+SPF domain: sendgrid.net
+DKIM domain: sendgrid.net
+```
+
+Therefore:
+
+```text
+SPF PASS + no alignment
+DKIM PASS + no alignment
+= DMARC FAIL
+```
+
+### Enforcement Result
+
+Unlike the earlier `p=none` alignment test, Gmail placed this DMARC-failing message in the Spam folder while the domain was operating under:
+
+```text
+p=quarantine
+```
+
+Gmail also displayed a warning indicating that the visible sender identity could not be verified.
+
+This demonstrated the practical effect of moving from monitoring to enforcement.
+
+### Evidence
+
+![DMARC Quarantine Spam Result](evidence/13-dmarc-quarantine-failure-spam.png)
+
+![DMARC Quarantine Authentication Results](evidence/14-dmarc-quarantine-failure-auth-results.png)
+
+### Comparison
+
+| Scenario | SPF | DKIM | DMARC | Gmail Result |
+|---|---|---|---|---|
+| Microsoft 365 legitimate mail | PASS | PASS | PASS | Inbox |
+| SendGrid alignment failure under `p=none` | PASS | PASS | FAIL | Delivered |
+| SendGrid alignment failure under `p=quarantine` | PASS | PASS | FAIL | Spam |
+
+This demonstrated that DMARC enforcement depends not only on authentication success, but also on domain alignment and the published DMARC policy.
+
+**Status: DMARC quarantine enforcement test completed successfully ✅**
+
+---
 ## Current DNS and Authentication State
 
 | Control | Status |
