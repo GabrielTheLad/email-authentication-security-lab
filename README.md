@@ -397,13 +397,13 @@ These reports can provide information such as:
 - Authentication failures
 - Sending infrastructure using the domain
 
-The domain remains under:
+At this stage of the lab, the domain remained under:
 
 ```text
 p=none
 ```
 
-This allows authentication activity to be monitored before moving toward an enforcement policy.
+This allowed authentication activity to be monitored before moving toward an enforcement policy.
 
 ### DNS Validation
 
@@ -539,9 +539,10 @@ The report confirmed that Microsoft 365 was sending authenticated and aligned ma
 **Status: First DMARC aggregate report received and analyzed successfully ✅**
 
 ---
-## Authentication Results
 
-The final successful test produced the following results:
+## Baseline Authentication Results
+
+Before progressing to DMARC enforcement testing, legitimate Microsoft 365 mail produced the following authentication results:
 
 | Control | Result |
 |---|---|
@@ -781,16 +782,107 @@ Failed DMARC rejected during SMTP delivery
 **Status: DMARC reject enforcement test completed successfully ✅**
 
 ---
-## Current DNS and Authentication State
+## 13. Final Secured State
 
-| Control | Status |
-|---|---|
-| MX Routing | ✅ Configured |
-| SPF | ✅ PASS |
-| DKIM | ✅ PASS |
-| DMARC | ✅ PASS |
-| DMARC Policy | `p=none` |
-| DNSSEC | ✅ Enabled |
+After completing authentication, alignment, reporting, and enforcement testing, the domain was left in its final secured configuration.
+
+### SPF
+
+```text
+v=spf1 include:spf.protection.outlook.com -all
+```
+
+Microsoft 365 remains the authorized outbound mail infrastructure for the domain.
+
+### DKIM
+
+DKIM signing remains enabled through Microsoft 365.
+
+The public selector:
+
+```text
+selector1._domainkey.gabrielthelad.com
+```
+
+resolves to Microsoft 365 DKIM infrastructure.
+
+### DMARC
+
+The final DMARC policy is:
+
+```text
+v=DMARC1; p=reject; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+This configuration:
+
+- Requests receiving mail systems to reject messages that fail DMARC
+- Continues collecting DMARC aggregate reports
+- Allows legitimate Microsoft 365 mail to authenticate normally
+- Helps protect the visible domain identity from unauthorized use
+
+### Final DNS Validation
+
+The final configuration was validated using Google Public DNS:
+
+```text
+nslookup -type=TXT gabrielthelad.com 8.8.8.8
+nslookup -type=CNAME selector1._domainkey.gabrielthelad.com 8.8.8.8
+nslookup -type=TXT _dmarc.gabrielthelad.com 8.8.8.8
+```
+
+The queries confirmed the final SPF, DKIM, and DMARC configuration.
+
+### Evidence
+
+![Final Email Authentication DNS State](evidence/17-final-email-authentication-dns-state.png)
+
+---
+
+## 14. Project Outcome
+
+This lab progressed from basic email authentication configuration to controlled authentication failures, domain alignment testing, aggregate reporting, and full DMARC enforcement.
+
+The project demonstrated:
+
+- SPF configuration and validation
+- DKIM configuration and validation
+- DMARC monitoring with `p=none`
+- Controlled SPF failure
+- Controlled DKIM-disabled testing and recovery
+- DMARC alignment failure
+- DMARC aggregate reporting
+- DMARC XML report analysis
+- DMARC quarantine enforcement
+- DMARC reject enforcement
+- SMTP rejection caused by DMARC policy
+- Final hardened email authentication configuration
+
+A key finding was that successful SPF and DKIM authentication alone do not guarantee DMARC success.
+
+DMARC requires at least one passing authentication mechanism to align with the visible `From` domain.
+
+The SendGrid tests demonstrated:
+
+```text
+SPF: PASS
+DKIM: PASS
+DMARC: FAIL
+```
+
+when SPF and DKIM authenticated `sendgrid.net` while the visible sender used `gabrielthelad.com`.
+
+The complete enforcement progression observed was:
+
+```text
+p=none       → DMARC failure delivered
+p=quarantine → DMARC failure placed in Spam
+p=reject     → DMARC failure rejected during SMTP delivery
+```
+
+Legitimate Microsoft 365 mail continued to pass SPF, DKIM, and DMARC throughout the enforcement process.
+
+**Final status: SPF, DKIM, DMARC reporting, alignment testing, and DMARC enforcement successfully implemented and validated.**
 
 ---
 
@@ -800,7 +892,7 @@ This implementation demonstrated that SPF, DKIM, and DMARC perform different but
 
 ### SPF
 
-SPF defines which mail infrastructure is authorized to send email on behalf of the domain.
+SPF defines which mail infrastructure is authorized to send using a domain in the SMTP envelope sender (MAIL FROM) or HELO identity. DMARC then evaluates whether the authenticated SPF domain aligns with the visible `From` domain.
 
 ### DKIM
 
@@ -832,23 +924,9 @@ MX: Microsoft 365 / Exchange Online
 SPF: PASS
 DKIM: PASS
 DMARC: PASS
-DMARC Policy: p=none
+DMARC Policy: p=reject
+DMARC Reporting: Enabled
 ```
-
----
-
-## Next Phase
-
-The next phase of the project will focus on controlled testing and policy behavior.
-
-Planned areas include:
-
-- SPF failure scenarios
-- DKIM failure scenarios
-- DMARC alignment behavior
-- Authentication failure analysis
-- DMARC reporting
-- Progression from `p=none` toward stronger enforcement
 
 ---
 
@@ -895,14 +973,14 @@ After publishing the initial `p=none` DMARC policy, Gmail confirmed successful S
 
 ### Final DNS Configuration
 
-The final DNS configuration includes Microsoft 365 mail routing, SPF, DKIM selectors, DMARC, and Autodiscover.
+The final DNS state confirms Microsoft 365 SPF authorization, Microsoft 365 DKIM resolution, and DMARC enforcement at `p=reject` with aggregate reporting enabled.
 
-![Final DNS Configuration](evidence/05-final-dns-configuration.png)
+![Final Email Authentication DNS State](evidence/17-final-email-authentication-dns-state.png)
 
 ## Project Status
 
-🚧 **In Progress**
+✅ **Completed**
 
-Core SPF, DKIM, and DMARC implementation and real-world validation are complete.
+SPF, DKIM, and DMARC were implemented and validated through real-world email testing.
 
-Controlled failure testing, reporting, and DMARC policy enforcement are the next stages.
+The project also completed controlled authentication failure testing, DMARC alignment analysis, aggregate reporting, and policy progression from `p=none` to `p=quarantine` and finally `p=reject`.
