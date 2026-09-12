@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feedback>
+  <version>1.0</version>
+
+  <report_metadata>
+    <org_name>google.com</org_name>
+    <report_id>REDACTED</report_id>
+
+    <date_range>
+      <begin>1788998400</begin>
+      <end>1789084799</end>
+    </date_range>
+  </report_metadata>
+
+  <policy_published>
+    <domain>gabrielthelad.com</domain>
+    <adkim>r</adkim>
+    <aspf>r</aspf>
+    <p>none</p>
+    <sp>none</sp>
+    <pct>100</pct>
+    <np>none</np>
+  </policy_published>
+
+  <record>
+    <row>
+      <source_ip>2a01:111:f403:c200::1</source_ip>
+      <count>2</count>
+
+      <policy_evaluated>
+        <disposition>none</disposition>
+        <dkim>pass</dkim>
+        <spf>pass</spf>
+      </policy_evaluated>
+    </row>
+
+    <identifiers>
+      <header_from>gabrielthelad.com</header_from>
+    </identifiers>
+
+    <auth_results>
+      <dkim>
+        <domain>gabrielthelad.com</domain>
+        <result>pass</result>
+        <selector>selector1</selector>
+      </dkim>
+
+      <spf>
+        <domain>gabrielthelad.com</domain>
+        <result>pass</result>
+      </spf>
+    </auth_results>
+  </record>
+</feedback>
