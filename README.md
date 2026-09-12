@@ -665,6 +665,122 @@ This demonstrated that DMARC enforcement depends not only on authentication succ
 **Status: DMARC quarantine enforcement test completed successfully ✅**
 
 ---
+## 12. DMARC Reject Enforcement Test
+
+After successfully testing the `p=quarantine` policy, the DMARC policy was moved to full enforcement:
+
+```text
+v=DMARC1; p=reject; rua=mailto:dmarc-reports@gabrielthelad.com
+```
+
+The objective was to confirm that legitimate authenticated mail continued to deliver normally while mail failing DMARC alignment could be rejected by the receiving provider.
+
+### Test A — Legitimate Microsoft 365 Mail
+
+A legitimate message was sent from:
+
+```text
+gabriel@gabrielthelad.com
+```
+
+through Microsoft 365.
+
+Gmail reported:
+
+```text
+SPF: PASS
+DKIM: PASS
+DMARC: PASS
+```
+
+The message was delivered successfully.
+
+This confirmed that moving to `p=reject` did not interfere with properly authenticated and aligned mail.
+
+### Evidence
+
+![DMARC Reject Legitimate Test](evidence/15-dmarc-reject-legitimate-pass.png)
+
+---
+
+### Test B — DMARC Alignment Failure
+
+A controlled message was sent through SendGrid using:
+
+```text
+From: gabriel@gabrielthelad.com
+```
+
+SendGrid authenticated the message using its own infrastructure rather than `gabrielthelad.com`.
+
+The previous alignment tests established the resulting authentication relationship:
+
+```text
+Visible From domain: gabrielthelad.com
+SPF authenticated domain: sendgrid.net
+DKIM signing domain: sendgrid.net
+```
+
+Although SPF and DKIM could authenticate successfully, neither authenticated domain aligned with the visible `From` domain.
+
+Therefore:
+
+```text
+SPF PASS + no alignment
+DKIM PASS + no alignment
+= DMARC FAIL
+```
+
+### SMTP Rejection
+
+SendGrid accepted the message for processing, but Gmail rejected it during delivery.
+
+The receiving server returned:
+
+```text
+550 5.7.26 Unauthenticated email from gabrielthelad.com
+is not accepted due to domain's DMARC policy.
+```
+
+SendGrid consequently recorded the message as a bounce.
+
+This demonstrated the practical effect of a `p=reject` DMARC policy.
+
+### Evidence
+
+![DMARC Reject Enforcement](evidence/16-dmarc-reject-bounce-evidence.png)
+
+### DMARC Enforcement Progression
+
+| DMARC Policy | DMARC-Failing SendGrid Message | Gmail Result |
+|---|---|---|
+| `p=none` | SPF/DKIM PASS but unaligned | Delivered |
+| `p=quarantine` | SPF/DKIM PASS but unaligned | Spam |
+| `p=reject` | SPF/DKIM PASS but unaligned | Rejected / Bounced |
+
+At the same time, legitimate Microsoft 365 mail continued to pass SPF, DKIM, and DMARC throughout the enforcement process.
+
+This demonstrated the complete DMARC policy progression:
+
+```text
+Monitor
+   ↓
+p=none
+   ↓
+Observe authentication and alignment
+   ↓
+p=quarantine
+   ↓
+Failed DMARC moved to Spam
+   ↓
+p=reject
+   ↓
+Failed DMARC rejected during SMTP delivery
+```
+
+**Status: DMARC reject enforcement test completed successfully ✅**
+
+---
 ## Current DNS and Authentication State
 
 | Control | Status |
